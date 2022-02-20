@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Webmozart\Assert\Assert;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
@@ -13,72 +14,92 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
-/**
- * @ApiResource(
- *     collectionOperations={"get", "post"},
- *     itemOperations={
- *          "get"={},
- *          "put"
- *     },
- *     shortName="cheeses",
- *     normalizationContext={"groups"={"cheese_listing:read"}, "swagger_definition_name"="Read"},
- *     denormalizationContext={"groups"={"cheese_listing:write"}, "swagger_definition_name"="Write"},
- *     attributes={
- *          "pagination_items_per_page"=2,
- *          "formats"={"jsonld", "json", "html", "csv"={"text/csv"}}
- *     }
- * )
- * @ApiFilter(BooleanFilter::class, properties={"isPublished"})
- * @ApiFilter(SearchFilter::class, properties={"title": "partial"})
- * @ApiFilter(RangeFilter::class, properties={"price"})
- * @ApiFilter(PropertyFilter::class)
- * @ORM\Entity(repositoryClass="App\Repository\CheeseListingRepository")
- */
+use App\Repository\CheeseListingRepository;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+
+#[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
+#[ApiResource(
+    collectionOperations:['get', 'post'],
+    itemOperations:['get', 'put'],
+    shortName:'cheeses',
+    normalizationContext:[
+        'groups' => 'cheese_listing:read',
+        'swagger_definition_name' => 'Read',
+    ],
+    denormalizationContext:[
+        'groups' => 'cheese_listing:write',
+        'swagger_definition_name' => 'Write',
+    ],
+    attributes:[
+        'pagination_items_per_page' => 10,
+        'formats' => [
+            'jsonld', 
+            'json', 
+            'html', 
+            'csv' => 'text/csv'
+        ],
+    ]
+)]
+#[ApiFilter(
+    BooleanFilter::class,
+    properties: ['isPublished'],
+)]
+#[ApiFilter(
+    SearchFilter::class,
+    properties:[
+        'title' => 'partial',
+    ]
+)]
+#[ApiFilter(
+    RangeFilter::class,
+    properties: ['price'],
+)]
+#[ApiFilter(
+    PropertyFilter::class
+)]
 class CheeseListing
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type:'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @Groups({"cheese_listing:read", "cheese_listing:write"})
-     * @Assert\NotBlank()
-     * @Assert\Length(
-     *      min=2,
-     *      max=50,
-     *      maxMessage="Describe your cheese in  50 characters or less"
-     * )
-     */
+    #[ORM\Column(type:'string', length:255)]
+    #[NotBlank()]
+    #[Length(
+        min:2,
+        max:50,
+        maxMessage:'Describe your cheese in  50 characters or less'
+    )]
+    #[Groups([
+        'cheese_listing:read',
+        'cheese_listing:write'
+    ])]
     private $title;
 
-    /**
-     * @ORM\Column(type="text")
-     * @Groups({"cheese_listing:read"})
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(type:'text')]
+    #[NotBlank()]
+    #[Groups([
+        'cheese_listing:read'
+    ])]
     private $description;
 
-    /**
-     * The price of this delicious cheese, in cents
-     *
-     * @ORM\Column(type="integer")
-     * @Groups({"cheese_listing:read", "cheese_listing:write"})
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(type:'integer')]
+    #[NotBlank()]
+    #[Groups([
+        'cheese_listing:read',
+        'cheese_listing:write'
+    ])]
+    #[ApiProperty([
+        'description' => 'The price of this delicious cheese, in cents'
+    ])]
     private $price;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type:'datetime')]
     private $createdAt;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[orm\Column(type:'boolean')]
     private $isPublished = false;
 
     public function __construct()
@@ -107,12 +128,13 @@ class CheeseListing
     {
         return $this->description;
     }
-
-    /**
-     *  Returns a description with maximum 40 characters
-     * 
-     * @Groups("cheese_listings:read")
-     */
+    #[Groups([
+        'cheese_listing:read'
+    ])]
+    #[ApiProperty([
+        'description' => 'Returns a description with maximum 40 characters'
+    ])]
+    #[SerializedName('short description')]
     public function getShortDescription(): ?string
     {   
         if (strlen($this->description) < 40) {
@@ -127,12 +149,13 @@ class CheeseListing
         return $this;
     }
 
-    /**
-     * The description of the cheese as raw text
-     * 
-     * @Groups("cheese_listing:write")
-     * @SerializedName("description")
-     */
+    #[ApiProperty([
+        'description' => 'The description of the cheese as raw text'
+    ])]
+    #[Groups([
+        'cheese_listing:write'
+    ])]
+    #[SerializedName('description')]
     public function setTextDescription(string $description): self
     {
         $this->description = nl2br($description);
