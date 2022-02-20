@@ -17,11 +17,22 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
 use App\Repository\CheeseListingRepository;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Valid;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
     collectionOperations:['get', 'post'],
-    itemOperations:['get', 'put'],
+    itemOperations:[
+        'get' =>[
+            'normalization_context' => [
+                'groups' => [
+                    'cheese_listing:read',
+                    'cheese_listing:item:get'
+                ]
+            ]
+        ], 
+        'put'
+    ],
     shortName:'cheeses',
     normalizationContext:[
         'groups' => 'cheese_listing:read',
@@ -49,6 +60,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     SearchFilter::class,
     properties:[
         'title' => 'partial',
+        'owner' => 'exact', 
+        'owner.username' => 'partial'
     ]
 )]
 #[ApiFilter(
@@ -74,7 +87,9 @@ class CheeseListing
     )]
     #[Groups([
         'cheese_listing:read',
-        'cheese_listing:write'
+        'cheese_listing:write',
+        'user:read',
+        'user:write'
     ])]
     private $title;
 
@@ -89,7 +104,9 @@ class CheeseListing
     #[NotBlank()]
     #[Groups([
         'cheese_listing:read',
-        'cheese_listing:write'
+        'cheese_listing:write',
+        'user:read',
+        'user:write'
     ])]
     #[ApiProperty([
         'description' => 'The price of this delicious cheese, in cents'
@@ -101,6 +118,15 @@ class CheeseListing
 
     #[orm\Column(type:'boolean')]
     private $isPublished = false;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cheeseListings')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups([
+        'cheese_listing:read',
+        'cheese_listing:write'
+    ])]
+    #[Valid()]
+    private $owner;
 
     public function __construct()
     {
@@ -153,7 +179,8 @@ class CheeseListing
         'description' => 'The description of the cheese as raw text'
     ])]
     #[Groups([
-        'cheese_listing:write'
+        'cheese_listing:write',
+        'user:write'
     ])]
     #[SerializedName('description')]
     public function setTextDescription(string $description): self
@@ -198,6 +225,18 @@ class CheeseListing
     public function setIsPublished(bool $isPublished): self
     {
         $this->isPublished = $isPublished;
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): self
+    {
+        $this->owner = $owner;
 
         return $this;
     }
