@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use Carbon\Carbon;
-use Webmozart\Assert\Assert;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
@@ -21,7 +20,12 @@ use Symfony\Component\Validator\Constraints\Valid;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
-    collectionOperations:['get', 'post'],
+    collectionOperations:[
+        'get',
+        'post'=> [
+            "security"=>"is_granted('ROLE_USER')",
+        ],
+    ],
     itemOperations:[
         'get' =>[
             'normalization_context' => [
@@ -31,16 +35,19 @@ use Symfony\Component\Validator\Constraints\Valid;
                 ]
             ]
         ], 
-        'put'
+        'put' => [
+            "security"=>"is_granted('ROLE_USER')",
+        ],
+        'delete' => [
+            "security"=>"is_granted('ROLE_ADMIN')",
+        ],
     ],
     shortName:'cheeses',
     normalizationContext:[
-        'groups' => 'cheese_listing:read',
-        'swagger_definition_name' => 'Read',
+        'groups' => 'cheese_listing:read'
     ],
     denormalizationContext:[
-        'groups' => 'cheese_listing:write',
-        'swagger_definition_name' => 'Write',
+        'groups' => 'cheese_listing:write'
     ],
     attributes:[
         'pagination_items_per_page' => 10,

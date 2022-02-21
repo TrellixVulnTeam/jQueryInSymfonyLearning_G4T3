@@ -66,8 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups([
         'user:read',
         'user:write',
-        'cheese_listing:item:get',
-        'cheese_listing:write'
+        'cheese_listing:item:get'
     ])]
     #[NotBlank()]
     private $username;
