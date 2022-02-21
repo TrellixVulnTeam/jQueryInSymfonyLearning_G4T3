@@ -2,8 +2,13 @@
   "entrypoints": {
     "app": {
       "js": [
-        "http://localhost:8080/build/runtime.js",
-        "http://localhost:8080/build/app.js"
+        "/build/runtime.js",
+        "/build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-d9f730.js",
+        "/build/app.js"
+      ],
+      "css": [
+        "/build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-d9f730.css",
+        "/build/app.css"
       ]
     }
   }
