@@ -1,0 +1,9 @@
+{
+  "build/app.css": "http://localhost:8080/build/app.css",
+  "build/app.js": "http://localhost:8080/build/app.js",
+  "build/runtime.js": "http://localhost:8080/build/runtime.js",
+  "build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-bae5e0.css": "http://localhost:8080/build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-bae5e0.css",
+  "build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-bae5e0.js": "http://localhost:8080/build/vendors-node_modules_axios_index_js-node_modules_bootstrap_dist_css_bootstrap_css-node_module-bae5e0.js",
+  "build/vendors-node_modules_axios_index_js-node_modules_core-js_modules_es_object_to-string_js-node_-f7d211.css": "http://localhost:8080/build/vendors-node_modules_axios_index_js-node_modules_core-js_modules_es_object_to-string_js-node_-f7d211.css",
+  "build/vendors-node_modules_axios_index_js-node_modules_core-js_modules_es_object_to-string_js-node_-f7d211.js": "http://localhost:8080/build/vendors-node_modules_axios_index_js-node_modules_core-js_modules_es_object_to-string_js-node_-f7d211.js"
+}
