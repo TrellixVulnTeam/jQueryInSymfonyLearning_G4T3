@@ -11,14 +11,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserDataPersister implements DataPersisterInterface
 {
      private $em;
-     private $userPasswordHasherInterface;
-     private $loggerInterface;
 
-     public function __construct(EntityManagerInterface $entityManagerInterface, UserPasswordHasherInterface $userPasswordHasherInterface, LoggerInterface $loggerInterface)
+     public function __construct(EntityManagerInterface $entityManagerInterface, UserPasswordHasherInterface $userPasswordHasherInterface)
      {
           $this->em = $entityManagerInterface;
           $this->userPasswordHasherInterface = $userPasswordHasherInterface;
-          $this->loggerInterface = $loggerInterface;
      }
 
      public function supports($data): bool

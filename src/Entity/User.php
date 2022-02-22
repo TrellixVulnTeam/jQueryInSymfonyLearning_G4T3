@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     itemOperations:[
         'get',
         'put' => [
-            "security"=>"is_granted('ROLE_USER') and object.getOwner()== user",
+            "security"=>"is_granted('ROLE_USER') and object == user ",
         ],
         'delete'=> [
             "security"=>"is_granted('ROLE_ADMIN')",
@@ -33,7 +33,10 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     collectionOperations:[
         'get', 
         'post' => [
-            'security' => "is_granted('PUBLIC_ACCESS')"
+            'security' => "is_granted('PUBLIC_ACCESS')",
+            'validation_groups' => [
+                'Default', 'create'
+            ]
         ]
     ],
     normalizationContext:[
@@ -97,6 +100,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         'user:write',
     ])]
     #[SerializedName('password')]
+    #[NotBlank([
+        'groups' => ['create']
+    ])]
     private $plainPassword;
 
     public function __construct()
