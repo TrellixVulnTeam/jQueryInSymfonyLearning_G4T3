@@ -40,11 +40,11 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
         ]
     ],
     normalizationContext:[
-        'groups' => 'user:read',
+        'groups' => ['user:read'],
         'swagger_definition_name' => 'Read',
     ],
     denormalizationContext:[
-        'groups' => 'user:write',
+        'groups' => ['user:write'],
         'swagger_definition_name' => 'Write',
     ],
 )]
@@ -74,6 +74,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $email;
 
     #[ORM\Column(type: 'json')]
+    #[Groups([
+        'admin:write'
+    ])]
     private $roles = [];
 
     #[ORM\Column(type: 'string')]
@@ -82,15 +85,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255, unique:true)]
     #[Groups([
         'user:read',
-        'user:write',
-        'cheese_listing:item:get'
+        'user:write'
     ])]
     #[NotBlank()]
     private $username;
 
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: CheeseListing::class, cascade:['persist'], orphanRemoval:true)]
     #[Groups([
-        'user:read',
         'user:write'
     ])]
     #[Valid()]
@@ -104,6 +105,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         'groups' => ['create']
     ])]
     private $plainPassword;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    #[Groups([
+        'user:write',
+        'admin:read',
+        'owner:read'
+    ])]
+    private $phoneNumber;
 
     public function __construct()
     {
@@ -200,6 +209,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->cheeseListings;
     }
 
+    /**
+     * @return Collection\CheeseListing[]
+     */
+    #[Groups([
+        'user:read'
+    ])]
+    #[SerializedName('cheeseListings')]
+    public function getPublishedCheeseListings(): Collection
+    {
+        return $this->cheeseListings->filter(function(CheeseListing $cheeseListing){
+            return $cheeseListing->getIsPublished();
+        });
+    }
+
     public function addCheeseListing(CheeseListing $cheeseListing): self
     {
         if (!$this->cheeseListings->contains($cheeseListing)) {
@@ -232,5 +255,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPlainPassword(): ?string
     {
         return $this->plainPassword;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): self
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
     }
 }

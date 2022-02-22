@@ -3,22 +3,26 @@
 namespace App\Entity;
 
 use Carbon\Carbon;
+use App\Validator\IsValidOwner;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiFilter;
+use App\Repository\CheeseListingRepository;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Validator\Constraints\Valid;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
-use App\Repository\CheeseListingRepository;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Valid;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
+#[ORM\EntityListeners([
+    'App\Doctrine\CheeseListingSetOwnerListener'
+])]
 #[ApiResource(
     collectionOperations:[
         'get',
@@ -45,10 +49,10 @@ use Symfony\Component\Validator\Constraints\Valid;
     ],
     shortName:'cheeses',
     normalizationContext:[
-        'groups' => 'cheese_listing:read'
+        'groups' => ['cheese_listing:read']
     ],
     denormalizationContext:[
-        'groups' => 'cheese_listing:write'
+        'groups' => ['cheese_listing:write']
     ],
     attributes:[
         'pagination_items_per_page' => 10,
@@ -127,13 +131,15 @@ class CheeseListing
     #[orm\Column(type:'boolean')]
     private $isPublished = false;
 
+    /**
+     * @IsValidOwner()
+     */
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cheeseListings')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups([
         'cheese_listing:read',
         'cheese_listing:write'
     ])]
-    #[Valid()]
     private $owner;
 
     public function __construct(string $title=null)
