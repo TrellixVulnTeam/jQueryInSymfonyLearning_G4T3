@@ -2,23 +2,40 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\UserRepository;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Valid;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Valid;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ApiResource(
+    security:"is_granted('ROLE_USER')",
+    itemOperations:[
+        'get',
+        'put' => [
+            "security"=>"is_granted('ROLE_USER') and object.getOwner()== user",
+        ],
+        'delete'=> [
+            "security"=>"is_granted('ROLE_ADMIN')",
+        ],
+    ],
+    collectionOperations:[
+        'get', 
+        'post' => [
+            'security' => "is_granted('PUBLIC_ACCESS')"
+        ]
+    ],
     normalizationContext:[
         'groups' => 'user:read',
         'swagger_definition_name' => 'Read',
@@ -57,9 +74,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $roles = [];
 
     #[ORM\Column(type: 'string')]
-    #[Groups([
-        'user:write'
-    ])]
     private $password;
 
     #[ORM\Column(type: 'string', length: 255, unique:true)]
@@ -78,6 +92,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     ])]
     #[Valid()]
     private $cheeseListings;
+
+    #[Groups([
+        'user:write',
+    ])]
+    #[SerializedName('password')]
+    private $plainPassword;
 
     public function __construct()
     {
@@ -151,7 +171,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getUsername(): ?string
@@ -194,5 +214,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function setPlainPassword(string $password): self
+    {
+        $this->plainPassword = $password;
+
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
     }
 }

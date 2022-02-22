@@ -2,12 +2,11 @@
 
 namespace App\Tests\Functional;
 
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\CheeseListing;
+use App\Test\CustomApiTestCase;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
-use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\ApiTestCase;
 
-class CheeseListingResourceTest extends ApiTestCase
+class CheeseListingResourceTest extends CustomApiTestCase
 {
 
      use ReloadDatabaseTrait;
@@ -24,24 +23,46 @@ class CheeseListingResourceTest extends ApiTestCase
           ]);
           $this->assertResponseStatusCodeSame(401);
 
-          $user = new User();
-          $user->setEmail('cheeseplease@example.com');
-          $user->setUsername('cheeseplease');
-          $user->setPassword('$2y$13$S5umU89zN3aE.e9sc4MvgurnYbpPrHLLji.eQtP3WrnHEJfNmGm/u');
+          $user = 'cheeseplease@example.com';
+          $pass = 'foo'; 
+          $usuario = $this->createUserAndLogin($client, $user, $pass);
 
-          $em = self::getContainer()->get(EntityManagerInterface::class);
-          $em->persist($user);
+          $client->request('POST', '/api/cheeses', [
+               'json' => [],
+          ]);
+          $this->assertResponseStatusCodeSame(422);
+     }
+
+     public function testUpdateCheeseListing()
+     {
+          $client = self::createClient();
+          $user1 = $this->createUser('user1@example.com', 'foo');
+          $user2 = $this->createUser('user2@example.com', 'foo');
+
+          $cheeseListing = new CheeseListing('Block of cheddar');
+          $cheeseListing->setOwner($user1);
+          $cheeseListing->setPrice(1000);
+          $cheeseListing->setDescription('mmmm');
+
+          $em = $this->getEntityManager();
+          $em->persist($cheeseListing);
           $em->flush();
 
-          $client->request('POST', '/login', [
-               'headers' => [
-                    'Content-Type' => 'application/json',
-               ],
+          $this->logIn($client, 'user2@example.com', 'foo');
+          $client->request('PUT', '/api/cheeses/'.$cheeseListing->getId(), [
                'json' => [
-                    'email' => 'cheeseplease@example.com',
-                    'password' => 'foo',
-               ],
+                    'title' => 'updated',
+                    'owner' => 'api/users/'.$user2->getId()
+               ]
           ]);
-          $this->assertResponseStatusCodeSame(204);
+          $this->assertResponseStatusCodeSame(403);
+          // var_dump($client->getResponse()->getContent(false));
+
+          $this->logIn($client, 'user1@example.com', 'foo');
+          $client->request('PUT', '/api/cheeses/'.$cheeseListing->getId(), [
+               'json' => ['title' => 'updated']
+          ]);
+          $this->assertResponseStatusCodeSame(200);
      }
+
 }

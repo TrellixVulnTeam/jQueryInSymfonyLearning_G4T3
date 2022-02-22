@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class SecurityController extends AbstractController
 {
-     #[Route('/login', name: 'app_login', methods:'POST')]
+     #[Route('/login', name: 'app_login')]
      public function login(IriConverterInterface $iriConverterInterface)
      {
           if (!$this->isGranted('IS_AUTHENTICATED_FULLY')){

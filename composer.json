@@ -26,6 +26,7 @@
         "symfony/http-client": "6.0.*",
         "symfony/maker-bundle": "^1.37",
         "symfony/monolog-bundle": "^3.7",
+        "symfony/password-hasher": "6.0.*",
         "symfony/phpunit-bridge": "^6.0",
         "symfony/property-access": "6.0.*",
         "symfony/property-info": "6.0.*",

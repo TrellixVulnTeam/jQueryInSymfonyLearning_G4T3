@@ -36,7 +36,8 @@ use Symfony\Component\Validator\Constraints\Valid;
             ]
         ], 
         'put' => [
-            "security"=>"is_granted('ROLE_USER')",
+            "security"=>"is_granted('ROLE_USER') and object.getOwner()== user",
+            'security_message' => 'Only the creator can edit a cheese listing'
         ],
         'delete' => [
             "security"=>"is_granted('ROLE_ADMIN')",
@@ -135,9 +136,10 @@ class CheeseListing
     #[Valid()]
     private $owner;
 
-    public function __construct()
+    public function __construct(string $title=null)
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->title = $title;
     }
 
     public function getId(): ?int
